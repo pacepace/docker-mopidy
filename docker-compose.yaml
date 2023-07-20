@@ -1,0 +1,12 @@
+---
+version: '3.4'
+services:
+  discodon:
+    image: pace23pace/modipy:latest
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    container_name: modipy
+    environment:
+    - TZ=UTC
+    restart: unless-stopped
