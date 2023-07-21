@@ -33,20 +33,19 @@ RUN set -ex \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* ~/.cache
 
-COPY Pipfile Pipfile.lock /
+# COPY Pipfile Pipfile.lock /
+COPY Pipfile Pipfile /
 
 RUN set -ex \
+ && pipenv lock \
  && pipenv install --system --deploy
-
 RUN set -ex \
  && mkdir -p /var/lib/mopidy/.config \
- && ln -s /config /var/lib/mopidy/.config/mopidy
+ && ln -s /config /var/lib/mopidy/.config/mopidy \
+ && sed -i 's/json_obj\["gender"\]/json_obj.get\("gender", None\)/g' /usr/local/lib/python3.7/dist-packages/tidalapi/user.py
 
 # Start helper script.
 COPY entrypoint.sh /entrypoint.sh
-
-# Default configuration.
-COPY mopidy.conf /config/mopidy.conf
 
 # Copy the pulse-client configuratrion.
 COPY pulse-client.conf /etc/pulse/client.conf
@@ -55,16 +54,19 @@ COPY pulse-client.conf /etc/pulse/client.conf
 ENV HOME=/var/lib/mopidy
 RUN set -ex \
  && usermod -G audio,sudo mopidy \
+ && mkdir -p /var/lib/mopidy/local \
+ && mkdir -p /var/lib/mopidy/playlists \
+ && mkdir -p /var/lib/mopidy/media \
  && chown mopidy:audio -R $HOME /entrypoint.sh \
  && chmod go+rwx -R $HOME /entrypoint.sh
-
+ 
 # Runs as mopidy user by default.
 USER mopidy
 
 # Basic check,
 RUN /usr/bin/dumb-init /entrypoint.sh /usr/bin/mopidy --version
 
-VOLUME ["/var/lib/mopidy/local", "/var/lib/mopidy/media"]
+# VOLUME ["/var/lib/mopidy/local", "/var/lib/mopidy/media"]
 
 EXPOSE 6600 6680 5555/udp
 

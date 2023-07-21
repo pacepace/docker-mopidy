@@ -1,12 +1,20 @@
 ---
 version: '3.4'
 services:
-  discodon:
-    image: pace23pace/modipy:latest
+  mopidy:
+    image: pace23pace/mopidy:latest
     build:
       context: .
       dockerfile: ./Dockerfile
-    container_name: modipy
+    container_name: mopidy
     environment:
     - TZ=UTC
+    network_mode: bridge
+    ports:
+    - "5555:5555/udp"
+    - "6600:6600"
+    - "6680:6680"
+    volumes:
+    - ./mopidy.conf:/config/mopidy.conf
+    - ./tidal-oauth.json:/var/lib/mopidy/tidal/tidal-oauth.json
     restart: unless-stopped
